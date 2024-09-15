@@ -1,3 +1,5 @@
-build/*
+/build
 cmake-build-debug/*
 _build
+/build/*
+/.idea/workspace.xml
