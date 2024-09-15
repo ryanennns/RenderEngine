@@ -12,7 +12,7 @@ private:
 	Vector3D eye;
 	vector<vector<Ray>> rays;
 public:
-	vector<vector<Ray>> generateRays(int width, int height);
+	vector<vector<Ray>> generateRays(int width, int height) const;
 	ViewPort();
 	ViewPort(Vector3D eye, double width = 400, double height = 800);
 

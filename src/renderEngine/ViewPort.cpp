@@ -12,7 +12,7 @@ ViewPort::ViewPort(Vector3D eye, double width, double height)
     this->eye = eye;
 }
 
-vector<vector<Ray> > ViewPort::generateRays(int width, int height)
+vector<vector<Ray> > ViewPort::generateRays(const int width, const int height) const
 {
     vector<vector<Ray> > rays;
     const double aspectRatio = (double) width / (double) height;

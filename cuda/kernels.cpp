@@ -1,5 +1,5 @@
 #include <iostream>
-#include "../include/Coordinates.h"
+#include "../include/Structs.h"
 
 extern "C" Coordinates* generateCoordinatesOnGPU(
     int width,

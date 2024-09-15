@@ -1,8 +1,8 @@
-#include "../include/Coordinates.h"
-#include "stdio.h"
+#include "../include/Structs.h"
+#include "../include/helpers.h"
+#include <cstdio>
 #include "cuda_runtime.h"
 
-// CUDA kernel that operates on primitives and outputs coordinates
 __global__ void generateCoordinatesKernel(
     const int width,
     const int height,
@@ -25,6 +25,22 @@ __global__ void generateCoordinatesKernel(
     }
 }
 
+__global__ void intersectionKernel(
+    const Line *lines,
+    const Landscape landscape,
+    const int width,
+    LineTriangleIntersection *objectIntersections
+)
+{
+    const unsigned int idx = blockIdx.x;
+    const unsigned int idy = threadIdx.x;
+
+    LineTriangleIntersection intersect = lineIntersectsLandscape(lines[idy * width + idx], landscape);
+
+    objectIntersections[idy * width + idx] = intersect;
+}
+
+
 extern "C" void generateCoordinatesOnGPU(
     const int width,
     const int height,
@@ -43,6 +59,26 @@ extern "C" void generateCoordinatesOnGPU(
 
     // Copy the result back to the host
     cudaMemcpy(output, d_output, size, cudaMemcpyDeviceToHost);
+
+    cudaFree(d_output);
+}
+
+extern "C" void determineLandscapeIntersectionsOnGPU(
+    const Line *lines,
+    const Landscape landscape,
+    const int width,
+    const int height,
+    LineTriangleIntersection *objectIntersections
+)
+{
+    LineTriangleIntersection *d_output = nullptr;
+    cudaMalloc((void **) &d_output, width * height * sizeof(LineTriangleIntersection));
+
+    intersectionKernel<<<width, height>>>(lines, landscape, width, d_output);
+
+    cudaDeviceSynchronize();
+
+    cudaMemcpy(objectIntersections, d_output, width * height * sizeof(LineTriangleIntersection), cudaMemcpyDeviceToHost);
 
     cudaFree(d_output);
 }

@@ -27,6 +27,7 @@ add_executable(
         src/components/Vector3D.cpp
         src/components/Ray.cpp
         src/renderEngine/ViewPort.cpp
+        cuda/helpers.cu
 )
 
 # Ensure that device linking is enabled for the final executable

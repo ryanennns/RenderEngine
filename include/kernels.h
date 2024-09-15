@@ -1,5 +1,5 @@
 #pragma
-#include "Coordinates.h"
+#include "Structs.h"
 
 void generateCoordinatesForColumn(
     int width,
