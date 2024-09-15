@@ -1,53 +1,45 @@
+#include <iostream>
 #include "../include/ViewPort.h"
+#include "../include/kernels.h"
 
-ViewPort::ViewPort(double width, double height)
+ViewPort::ViewPort()
 {
-	this->eye = Vector3D(0, 0, 0);
-	this->rays = generateRays(width, height);
+    this->eye = Vector3D(0, 0, 0);
 }
 
 ViewPort::ViewPort(Vector3D eye, double width, double height)
 {
-	this->eye = eye;
-	this->rays = generateRays(width, height);
+    this->eye = eye;
 }
 
-vector<vector<Ray>> ViewPort::generateRays(double width, double height)
+vector<vector<Ray> > ViewPort::generateRays(int width, int height)
 {
-	vector<vector<Ray>> rays;
-	double aspectRatio = width / height;
-	double zOffset = 1;
+    vector<vector<Ray> > rays;
+    const double aspectRatio = (double) width / (double) height;
+    double zOffset = 1;
 
-	for (int y = 0; y < height; y++)
-	{
-		vector<Ray> newRaySet;
-		rays.push_back(newRaySet);
+    for (int x = 0; x < width; x++) {
+        auto *coordinates = new Coordinates[height];
+        generateCoordinatesForColumn(width, height, x, aspectRatio, coordinates);
 
-		for (int x = 0; x < width; x++)
-		{
-			double normalizedX = (x + 0.5) / width;
-			double normalizedY = (y + 0.5) / height;
+        vector<Ray> newRays;
+        for (int i = 0; i < height; i++) {
+            newRays.push_back(Ray(this->eye, Vector3D(coordinates[i].x, coordinates[i].y, zOffset)));
+        }
+        rays.push_back(newRays);
 
-			normalizedX = (2 * normalizedX) - 1;
-			normalizedY = (2 * normalizedY) - 1;
+        delete[] coordinates;
+    }
 
-			normalizedX *= aspectRatio;
-
-			rays.at(y).push_back(
-				Ray(this->eye, Vector3D(normalizedX, normalizedY, zOffset))
-			);
-		}
-	}
-
-	return rays;
+    return rays;
 }
 
-vector<vector<Ray>> ViewPort::getRays()
+vector<vector<Ray> > ViewPort::getRays()
 {
-	return this->rays;
+    return this->rays;
 }
 
 Vector3D ViewPort::getEye()
 {
-	return this->eye;
+    return this->eye;
 }
