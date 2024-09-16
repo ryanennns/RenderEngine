@@ -1,3 +1,5 @@
+#include <cstdio>
+
 #include "../include/Structs.h"
 
 __device__ Vector vectorNormal(const Vector vector)
@@ -29,7 +31,7 @@ __device__ Vector vectorSubtract(Vector a, Vector b)
     };
 }
 
-__device__ Vector vectorMultiply(Vector vector, float scalar)
+__device__ Vector vectorMultiply(Vector vector, double scalar)
 {
     return Vector{
         vector.x * scalar,
@@ -56,7 +58,7 @@ __device__ double vectorDotProduct(Vector a, Vector b)
     );
 }
 
-__device__ Vector triangleSurfaceNormal(const Triangle triangle)
+__device__ Vector triangleSurfaceNormal(const Triangle &triangle)
 {
     const Vector AB = vectorSubtract(triangle.b, triangle.b);
     const Vector AC = vectorSubtract(triangle.c, triangle.a);
@@ -67,7 +69,7 @@ __device__ Vector triangleSurfaceNormal(const Triangle triangle)
     return normal;
 }
 
-__device__ bool trianglePointIsWithin(const Triangle triangle, const Vector point)
+__device__ bool trianglePointIsWithin(const Triangle &triangle, const Vector &point)
 {
     const Vector edge0 = vectorSubtract(triangle.b, triangle.a);
     const Vector edge1 = vectorSubtract(triangle.c, triangle.b);
@@ -90,12 +92,12 @@ __device__ bool trianglePointIsWithin(const Triangle triangle, const Vector poin
     return false;
 }
 
-__device__ Vector lineDirection(Line line)
+__device__ Vector lineDirection(const Line &line)
 {
     return vectorSubtract(line.b, line.a);
 }
 
-__device__ Vector lineEvaluate(Line line, double t)
+__device__ Vector lineEvaluate(const Line &line, const double t)
 {
     return vectorAdd(line.a, vectorMultiply(lineDirection(line), t));
 }
@@ -115,7 +117,7 @@ __device__ LineTriangleIntersection lineIntersectsTriangle(const Line &line, con
     }
 
     const double d = -vectorDotProduct(normal, triangle.a);
-    const double t = -((vectorDotProduct(normal, line.a)) + d) / nDotRayDirection;
+    const double t = -(vectorDotProduct(normal, line.a) + d) / nDotRayDirection;
 
     const Vector planeIntersection = lineEvaluate(line, t);
 
@@ -162,7 +164,8 @@ __device__ LineTriangleIntersection lineIntersectsLandscape(const Line &line, co
     for (int i = 0; i < landscape.size; i++) {
         const Object object = landscape.objects[i];
 
-        if (const LineTriangleIntersection intersection = lineIntersectsObject(line, object); intersection.intersects) {
+        const LineTriangleIntersection intersection = lineIntersectsObject(line, object);
+        if (intersection.intersects) {
             return intersection;
         }
     }

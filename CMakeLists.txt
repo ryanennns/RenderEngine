@@ -11,9 +11,11 @@ set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true")  # Ensure RDC is enabled
 
 # Add include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${SDL2_INCLUDE_DIRS})
 
 # Find CUDA toolkit
 find_package(CUDAToolkit REQUIRED)
+find_package(SDL2 REQUIRED)
 
 # Collect all source files from the src directory
 file(GLOB_RECURSE SOURCES ${CMAKE_SOURCE_DIR}/src/renderEngine*.cpp)
