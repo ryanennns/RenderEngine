@@ -32,7 +32,13 @@ set_target_properties(RenderEngine PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 target_link_libraries(RenderEngine CUDA::cudart ${SDL2_LIBRARIES})
 
-add_executable(test_suite tests/HelpersTest.cu cuda/helpers.cu)
+add_executable(
+        test_suite
+        tests/LineTest.cu
+        tests/VectorTest.cu
+        cuda/helpers.cu
+)
+
 target_link_libraries(test_suite GTest::gtest GTest::gtest_main pthread)
 
 add_test(NAME MyTest COMMAND test_suite)
