@@ -1,2 +1,11 @@
-./build/*
+/build
+cmake-build-debug/*
 _build
+/build/*
+/.idea/workspace.xml
+/.idea/.name
+/.idea/editor.xml
+/.idea/misc.xml
+/.idea/vcs.xml
+/.idea/renderer-code2.iml
+/.idea/*

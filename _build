@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cd /home/ryan/code/renderer-code
-
 rm -rf ./build
 mkdir ./build
 cd build

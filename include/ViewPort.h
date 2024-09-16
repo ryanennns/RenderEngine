@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Structs.h>
 #include <vector>
 #include "../include/Vector3D.h"
 #include "../include/Ray.h"
@@ -9,14 +10,14 @@ using namespace std;
 class ViewPort
 {
 private:
-	Vector3D eye;
-	vector<vector<Ray>> rays;
+    Vector3D eye;
+    vector<vector<Ray> > rays;
 
-	vector<vector<Ray>> generateRays(double width, double height);
 public:
-	ViewPort(double width = 400, double height = 800);
-	ViewPort(Vector3D eye, double width = 400, double height = 800);
+    Line *generateRays(int width, int height) const;
+    ViewPort();
+    ViewPort(Vector3D eye, double width = 400, double height = 800);
 
-	vector<vector<Ray>> getRays();
-	Vector3D getEye();
+    vector<vector<Ray> > getRays();
+    Vector3D getEye();
 };

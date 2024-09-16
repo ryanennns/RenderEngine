@@ -1,5 +1,8 @@
 #include <vector>
 #include "../../include/Scene.h"
+
+#include <Structs.h>
+
 #include "../../include/HitDetection.h"
 #include "../../include/Ray.h"
 #include "../../include/RaySurfaceIntersection.h"
