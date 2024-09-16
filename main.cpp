@@ -7,14 +7,13 @@
 
 int main()
 {
-
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
         return 1;
     }
 
-    constexpr int width = 1000;
-    constexpr int height = 500;
+    constexpr int width = 1;
+    constexpr int height = 1;
 
     SDL_Window *window = SDL_CreateWindow("Landscape Intersections", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                           width, height, SDL_WINDOW_SHOWN);
@@ -52,7 +51,7 @@ int main()
                 1,
                 new Triangle[1]{
                     Triangle{
-                        Vector{1.0f, 11.0f, 5.0f},
+                        Vector{1.0f, 1.0f, 5.0f},
                         Vector{-1.0f, 1.0f, 5.0f},
                         Vector{0.0f, -1.0f, 5.0f}
                     }

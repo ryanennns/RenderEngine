@@ -29,15 +29,21 @@ __global__ void intersectionKernel(
     const Line *lines,
     const Landscape landscape,
     const int width,
+    const int height,
     LineTriangleIntersection *objectIntersections
 )
 {
     const unsigned int idx = blockIdx.x;
     const unsigned int idy = threadIdx.x;
 
-    LineTriangleIntersection intersect = lineIntersectsLandscape(lines[idy * width + idx], landscape);
+    if (idx > width || idy > height) {
+        return;
+    }
 
-    objectIntersections[idy * width + idx] = intersect;
+    unsigned int index = idy * width + idx;
+    LineTriangleIntersection intersect = lineIntersectsLandscape(lines[index], landscape);
+
+    objectIntersections[index] = intersect;
 }
 
 
@@ -50,14 +56,18 @@ extern "C" void generateCoordinatesOnGPU(
 )
 {
     Coordinates *d_output = nullptr;
-    const size_t size = height * sizeof(Coordinates);
+    const size_t size = width * height * sizeof(Coordinates);
 
     cudaMalloc((void **) &d_output, size);
 
     generateCoordinatesKernel<<<1, height>>>(width, height, x, aspectRatio, d_output);
     cudaDeviceSynchronize();
 
-    cudaMemcpy(output, d_output, size, cudaMemcpyDeviceToHost);
+    const auto error = cudaMemcpy(output, d_output, size, cudaMemcpyDeviceToHost);
+
+    if (error != cudaSuccess) {
+        printf("CUDA memcpy error in coordinate generation: %s\n", cudaGetErrorString(error));
+    }
 
     cudaFree(d_output);
 }
@@ -73,18 +83,35 @@ extern "C" void determineLandscapeIntersectionsOnGPU(
     LineTriangleIntersection *d_output = nullptr;
     const size_t size = width * height * sizeof(LineTriangleIntersection);
 
-    cudaMalloc((void **) &d_output, size);
+    cudaError_t error = cudaMalloc((void **) &d_output, size);
 
-    intersectionKernel<<<width, height>>>(lines, landscape, width, d_output);
+    if (error != cudaSuccess) {
+        printf("CUDA malloc error: %s\n", cudaGetErrorString(error));
+    }
 
-    cudaDeviceSynchronize();
+    intersectionKernel<<<width, height>>>(lines, landscape, width, height, d_output);
+    error = cudaGetLastError();
+    if (error != cudaSuccess) {
+        printf("Kernel launch failed: %s\n", cudaGetErrorString(error));
+    }
 
-    cudaMemcpy(
+    error = cudaDeviceSynchronize();
+    if (error != cudaSuccess) {
+        printf("CUDA memcpy error: %s\n", cudaGetErrorString(error));
+        std::exit(-1);
+    }
+
+    error = cudaMemcpy(
         objectIntersections,
         d_output,
         size,
         cudaMemcpyDeviceToHost
     );
+
+    if (error != cudaSuccess) {
+        printf("CUDA memcpy error: %s\n", cudaGetErrorString(error));
+        // std::exit(-1);
+    }
 
     cudaFree(d_output);
 }
