@@ -8,3 +8,4 @@ _build
 /.idea/misc.xml
 /.idea/vcs.xml
 /.idea/renderer-code2.iml
+/.idea/*
