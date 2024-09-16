@@ -38,5 +38,5 @@ TEST(IntegrationTest, it_detects_intersection_with_rays_and_triangles)
         objectIntersections
     );
 
-    ASSERT_EQ(objectIntersections[0].intersects, true);
+    ASSERT_TRUE(objectIntersections[0].intersects);
 }
