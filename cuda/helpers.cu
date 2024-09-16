@@ -169,7 +169,7 @@ __device__ LineTriangleIntersection lineIntersectsLandscape(const Line &line, co
 
     return LineTriangleIntersection{
         false,
-        Triangle{0, 0, 0},
+        Triangle{Vector{0, 0, 0}, Vector{0, 0, 0}, Vector{0, 0, 0}},
         Line{Vector{0, 0, 0}, Vector{0, 0, 0}},
         Vector{0, 0, 0},
     };

@@ -7,9 +7,9 @@ struct Coordinates
 
 struct Vector
 {
-    float x;
-    float y;
-    float z;
+    double x;
+    double y;
+    double z;
 };
 
 struct Line

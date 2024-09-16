@@ -57,7 +57,6 @@ extern "C" void generateCoordinatesOnGPU(
     generateCoordinatesKernel<<<1, height>>>(width, height, x, aspectRatio, d_output);
     cudaDeviceSynchronize();
 
-    // Copy the result back to the host
     cudaMemcpy(output, d_output, size, cudaMemcpyDeviceToHost);
 
     cudaFree(d_output);

@@ -12,19 +12,24 @@ ViewPort::ViewPort(Vector3D eye, double width, double height)
     this->eye = eye;
 }
 
-vector<vector<Ray> > ViewPort::generateRays(const int width, const int height) const
+vector<vector<Line> > ViewPort::generateRays(const int width, const int height) const
 {
-    vector<vector<Ray> > rays;
+    vector<vector<Line> > rays;
     const double aspectRatio = (double) width / (double) height;
-    double zOffset = 1;
 
     for (int x = 0; x < width; x++) {
         auto *coordinates = new Coordinates[height];
         generateCoordinatesForColumn(width, height, x, aspectRatio, coordinates);
 
-        vector<Ray> newRays;
+        vector<Line> newRays;
         for (int i = 0; i < height; i++) {
-            newRays.push_back(Ray(this->eye, Vector3D(coordinates[i].x, coordinates[i].y, zOffset)));
+            const double zOffset = 1;
+            newRays.push_back(Line{
+                Vector{
+                    this->eye.x, this->eye.y, this->eye.z,
+                },
+                Vector{coordinates[i].x, coordinates[i].y, zOffset}
+            });
         }
         rays.push_back(newRays);
 
