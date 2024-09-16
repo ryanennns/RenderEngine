@@ -60,11 +60,11 @@ __device__ __host__ double vectorDotProduct(Vector a, Vector b)
 
 __device__ __host__ Vector triangleSurfaceNormal(const Triangle &triangle)
 {
-    const Vector AB = vectorSubtract(triangle.b, triangle.b);
+    const Vector AB = vectorSubtract(triangle.b, triangle.a);
     const Vector AC = vectorSubtract(triangle.c, triangle.a);
 
-    const Vector normal = vectorCrossProduct(AB, AC);
-    vectorNormal(normal);
+    Vector normal = vectorCrossProduct(AB, AC);
+    normal = vectorNormal(normal);
 
     return normal;
 }

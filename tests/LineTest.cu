@@ -2,23 +2,26 @@
 #include "../include/Structs.h"
 #include "../include/helpers.h"
 
-TEST(LineTriangleIntersectionTest, it_detects_intersection_with_triangle) {
-    const Line line = { {0, 0, 0}, {0, 0, 5} };
-    const Triangle triangle = { {1, 1, 3}, {-1, 1, 3}, {0, -1, 3} };
+TEST(LineTest, it_evaluates_lines_in_positive_direction)
+{
+    const Line line = Line{{0, 0, 0}, {1, 1, 1}};
+    const int evaluatingBy = 5;
 
-    // const Vector expectedIntersection = {0, 0, 3};
+    auto evaluated = lineEvaluate(line, evaluatingBy);
 
-    const LineTriangleIntersection result = lineIntersectsTriangle(line, triangle);
-
-    EXPECT_TRUE(result.intersects);
-    // EXPECT_EQ(result.intersection, expectedIntersection);
+    EXPECT_EQ(5, evaluated.x);
+    EXPECT_EQ(5, evaluated.y);
+    EXPECT_EQ(5, evaluated.z);
 }
 
-TEST(LineTriangleIntersectionTest, test_it_detects_lack_of_intersection) {
-    const Line line = { {0, 0, 0}, {0, 0, -5} };
-    const Triangle triangle = { {1, 1, 3}, {-1, 1, 3}, {0, -1, 3} };
+TEST(LineTest, it_evaluates_lines_in_negative_direction)
+{
+    const Line line = Line{{0, 0, 0}, {1, 1, 1}};
+    const int evaluatingBy = -5;
 
-    const LineTriangleIntersection result = lineIntersectsTriangle(line, triangle);
+    auto evaluated = lineEvaluate(line, evaluatingBy);
 
-    EXPECT_FALSE(result.intersects);
+    EXPECT_EQ(-5, evaluated.x);
+    EXPECT_EQ(-5, evaluated.y);
+    EXPECT_EQ(-5, evaluated.z);
 }

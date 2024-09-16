@@ -52,9 +52,9 @@ int main()
                 1,
                 new Triangle[1]{
                     Triangle{
-                        Vector{-1.0f, -1.0f, 5.0f},
-                        Vector{1.0f, 0.0f, 5.0f},
-                        Vector{0.0f, 1.0f, 5.0f}
+                        Vector{1.0f, 11.0f, 5.0f},
+                        Vector{-1.0f, 1.0f, 5.0f},
+                        Vector{0.0f, -1.0f, 5.0f}
                     }
                 }
             }
@@ -78,7 +78,7 @@ int main()
 
         auto finish = std::chrono::high_resolution_clock::now();
         int ms = (int) std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
-        // printf("REFRESH RATE: %.1lfhz\n", 1 / (ms * 0.001));
+        printf("REFRESH RATE: %.1lfhz\n", 1 / (ms * 0.001));
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);

@@ -37,6 +37,7 @@ add_executable(
         tests/LineTest.cu
         tests/VectorTest.cu
         cuda/helpers.cu
+        tests/TriangleTest.cu
 )
 
 target_link_libraries(test_suite GTest::gtest GTest::gtest_main pthread)
