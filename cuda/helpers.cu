@@ -2,7 +2,7 @@
 
 #include "../include/Structs.h"
 
-__device__ Vector vectorNormal(const Vector vector)
+__device__ __host__ Vector vectorNormal(const Vector vector)
 {
     const float magnitude = sqrtf(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
 
@@ -13,7 +13,7 @@ __device__ Vector vectorNormal(const Vector vector)
     };
 }
 
-__device__ Vector vectorAdd(Vector a, Vector b)
+__device__ __host__ Vector vectorAdd(Vector a, Vector b)
 {
     return Vector{
         a.x + b.x,
@@ -22,7 +22,7 @@ __device__ Vector vectorAdd(Vector a, Vector b)
     };
 }
 
-__device__ Vector vectorSubtract(Vector a, Vector b)
+__device__ __host__ Vector vectorSubtract(Vector a, Vector b)
 {
     return Vector{
         a.x - b.x,
@@ -31,7 +31,7 @@ __device__ Vector vectorSubtract(Vector a, Vector b)
     };
 }
 
-__device__ Vector vectorMultiply(Vector vector, double scalar)
+__device__ __host__ Vector vectorMultiply(Vector vector, double scalar)
 {
     return Vector{
         vector.x * scalar,
@@ -40,7 +40,7 @@ __device__ Vector vectorMultiply(Vector vector, double scalar)
     };
 }
 
-__device__ Vector vectorCrossProduct(Vector a, Vector b)
+__device__ __host__ Vector vectorCrossProduct(Vector a, Vector b)
 {
     return Vector{
         (a.y * b.z) - (a.z * b.y),
@@ -49,7 +49,7 @@ __device__ Vector vectorCrossProduct(Vector a, Vector b)
     };
 }
 
-__device__ double vectorDotProduct(Vector a, Vector b)
+__device__ __host__ double vectorDotProduct(Vector a, Vector b)
 {
     return (
         (a.x * b.x) +
@@ -58,7 +58,7 @@ __device__ double vectorDotProduct(Vector a, Vector b)
     );
 }
 
-__device__ Vector triangleSurfaceNormal(const Triangle &triangle)
+__device__ __host__ Vector triangleSurfaceNormal(const Triangle &triangle)
 {
     const Vector AB = vectorSubtract(triangle.b, triangle.b);
     const Vector AC = vectorSubtract(triangle.c, triangle.a);
@@ -69,7 +69,7 @@ __device__ Vector triangleSurfaceNormal(const Triangle &triangle)
     return normal;
 }
 
-__device__ bool trianglePointIsWithin(const Triangle &triangle, const Vector &point)
+__device__ __host__ bool trianglePointIsWithin(const Triangle &triangle, const Vector &point)
 {
     const Vector edge0 = vectorSubtract(triangle.b, triangle.a);
     const Vector edge1 = vectorSubtract(triangle.c, triangle.b);
@@ -92,17 +92,17 @@ __device__ bool trianglePointIsWithin(const Triangle &triangle, const Vector &po
     return false;
 }
 
-__device__ Vector lineDirection(const Line &line)
+__device__ __host__ Vector lineDirection(const Line &line)
 {
     return vectorSubtract(line.b, line.a);
 }
 
-__device__ Vector lineEvaluate(const Line &line, const double t)
+__device__ __host__ Vector lineEvaluate(const Line &line, const double t)
 {
     return vectorAdd(line.a, vectorMultiply(lineDirection(line), t));
 }
 
-__device__ LineTriangleIntersection lineIntersectsTriangle(const Line &line, const Triangle &triangle)
+__device__ __host__ LineTriangleIntersection lineIntersectsTriangle(const Line &line, const Triangle &triangle)
 {
     const auto normal = triangleSurfaceNormal(triangle);
     const double nDotRayDirection = vectorDotProduct(normal, lineDirection(line));
@@ -142,7 +142,7 @@ __device__ LineTriangleIntersection lineIntersectsTriangle(const Line &line, con
     };
 }
 
-__device__ LineTriangleIntersection lineIntersectsObject(const Line &line, const Object object)
+__device__ __host__ LineTriangleIntersection lineIntersectsObject(const Line &line, const Object object)
 {
     for (int i = 0; i < object.size; i++) {
         const auto intersection = lineIntersectsTriangle(line, object.triangles[i]);
@@ -159,7 +159,7 @@ __device__ LineTriangleIntersection lineIntersectsObject(const Line &line, const
     };
 }
 
-__device__ LineTriangleIntersection lineIntersectsLandscape(const Line &line, const Landscape landscape)
+__device__ __host__ LineTriangleIntersection lineIntersectsLandscape(const Line &line, const Landscape landscape)
 {
     for (int i = 0; i < landscape.size; i++) {
         const Object object = landscape.objects[i];

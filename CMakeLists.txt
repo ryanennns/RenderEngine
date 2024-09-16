@@ -20,8 +20,8 @@ file(GLOB_RECURSE SOURCES ${CMAKE_SOURCE_DIR}/src/renderEngine*.cpp)
 add_executable(
         RenderEngine
         main.cpp
-        cuda/kernels.cpp  # C++ wrapper
-        cuda/kernels.cu   # CUDA kernel implementation
+        cuda/kernels.cpp
+        cuda/kernels.cu
         src/components/Vector3D.cpp
         src/components/Ray.cpp
         src/renderEngine/ViewPort.cpp
@@ -31,4 +31,8 @@ add_executable(
 set_target_properties(RenderEngine PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 target_link_libraries(RenderEngine CUDA::cudart ${SDL2_LIBRARIES})
-target_link_libraries(RenderEngine GTest::gtest GTest::gtest_main pthread)
+
+add_executable(test_suite tests/HelpersTest.cu cuda/helpers.cu)
+target_link_libraries(test_suite GTest::gtest GTest::gtest_main pthread)
+
+add_test(NAME MyTest COMMAND test_suite)

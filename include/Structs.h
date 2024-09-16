@@ -10,6 +10,11 @@ struct Vector
     double x;
     double y;
     double z;
+
+    bool operator==(const Vector &v) const
+    {
+        return x == v.x && y == v.y && z == v.z;
+    }
 };
 
 struct Line
