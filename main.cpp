@@ -1,6 +1,7 @@
 #include <iostream>
 #include "include/ViewPort.h"
 #include <chrono>
+#include <kernels.h>
 #include <Structs.h>
 
 int main()
@@ -49,18 +50,28 @@ int main()
             objects
         };
 
-        constexpr int width = 100;
-        constexpr int height = 200;
+        constexpr int width = 1920;
+        constexpr int height = 1080;
 
-        vector<vector<Line> > rays = viewport.generateRays(width, height);
+        const Line *rays = viewport.generateRays(width, height);
+
+        auto *objectIntersections = new LineTriangleIntersection[width * height];
+        determineLandscapeIntersections(
+            rays,
+            landscape,
+            width,
+            height,
+            objectIntersections
+        );
 
         auto finish = std::chrono::high_resolution_clock::now();
         int ms = (int) std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
-        printf("RAY GENERATION RATE: %.1lf/s\n", 1 / (ms * 0.001));
-
+        printf("REFRESH RATE: %.1lf/s\n", 1 / (ms * 0.001));
 
         for (int i = 0; i < numberOfObjects; ++i) {
             delete[] objects[i].triangles;
         }
+        delete[] rays;
+        delete[] objectIntersections;
     }
 }

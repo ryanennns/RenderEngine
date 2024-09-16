@@ -12,31 +12,43 @@ ViewPort::ViewPort(Vector3D eye, double width, double height)
     this->eye = eye;
 }
 
-vector<vector<Line> > ViewPort::generateRays(const int width, const int height) const
+Line *ViewPort::generateRays(const int width, const int height) const
 {
-    vector<vector<Line> > rays;
+    // Allocate a single array of Lines, treating it as a flattened 2D array
+    Line *rays = new Line[width * height];
+
     const double aspectRatio = (double) width / (double) height;
 
     for (int x = 0; x < width; x++) {
+        // Allocate coordinates for this column
         auto *coordinates = new Coordinates[height];
+
+        // Call your generateCoordinatesForColumn function for this column
         generateCoordinatesForColumn(width, height, x, aspectRatio, coordinates);
 
-        vector<Line> newRays;
-        for (int i = 0; i < height; i++) {
-            const double zOffset = 1;
-            newRays.push_back(Line{
-                Vector{
-                    this->eye.x, this->eye.y, this->eye.z,
-                },
-                Vector{coordinates[i].x, coordinates[i].y, zOffset}
-            });
-        }
-        rays.push_back(newRays);
+        // Fill in the ray data for each row (height)
+        for (int y = 0; y < height; y++) {
+            constexpr double zOffset = 1;
 
+            // Flattened index calculation
+            int index = y * width + x;
+
+            // Create the ray in the flattened array
+            rays[index] = Line{
+                Vector{
+                    this->eye.x, this->eye.y, this->eye.z, // Eye position
+                },
+                Vector{
+                    coordinates[y].x, coordinates[y].y, zOffset // Coordinates from generated points
+                }
+            };
+        }
+
+        // Clean up the coordinates array for the current column
         delete[] coordinates;
     }
 
-    return rays;
+    return rays; // Return the flattened 2D array of Line objects
 }
 
 vector<vector<Ray> > ViewPort::getRays()

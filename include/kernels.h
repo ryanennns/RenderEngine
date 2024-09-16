@@ -1,4 +1,4 @@
-#pragma
+#pragma once
 #include "Structs.h"
 
 void generateCoordinatesForColumn(
@@ -7,4 +7,12 @@ void generateCoordinatesForColumn(
     int x,
     double aspectRatio,
     Coordinates *coordinates
+);
+
+void determineLandscapeIntersections(
+    const Line *lines,
+    const Landscape landscape,
+    const int width,
+    const int height,
+    LineTriangleIntersection *objectIntersections
 );

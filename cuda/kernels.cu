@@ -71,13 +71,20 @@ extern "C" void determineLandscapeIntersectionsOnGPU(
 )
 {
     LineTriangleIntersection *d_output = nullptr;
-    cudaMalloc((void **) &d_output, width * height * sizeof(LineTriangleIntersection));
+    const size_t size = width * height * sizeof(LineTriangleIntersection);
+
+    cudaMalloc((void **) &d_output, size);
 
     intersectionKernel<<<width, height>>>(lines, landscape, width, d_output);
 
     cudaDeviceSynchronize();
 
-    cudaMemcpy(objectIntersections, d_output, width * height * sizeof(LineTriangleIntersection), cudaMemcpyDeviceToHost);
+    cudaMemcpy(
+        objectIntersections,
+        d_output,
+        size,
+        cudaMemcpyDeviceToHost
+    );
 
     cudaFree(d_output);
 }

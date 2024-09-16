@@ -10,13 +10,14 @@ using namespace std;
 class ViewPort
 {
 private:
-	Vector3D eye;
-	vector<vector<Ray>> rays;
-public:
-	vector<vector<Line>> generateRays(int width, int height) const;
-	ViewPort();
-	ViewPort(Vector3D eye, double width = 400, double height = 800);
+    Vector3D eye;
+    vector<vector<Ray> > rays;
 
-	vector<vector<Ray>> getRays();
-	Vector3D getEye();
+public:
+    Line *generateRays(int width, int height) const;
+    ViewPort();
+    ViewPort(Vector3D eye, double width = 400, double height = 800);
+
+    vector<vector<Ray> > getRays();
+    Vector3D getEye();
 };
