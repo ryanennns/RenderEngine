@@ -12,8 +12,8 @@ int main()
         return 1;
     }
 
-    constexpr int width = 1;
-    constexpr int height = 1;
+    constexpr int width = 500;
+    constexpr int height = 500;
 
     SDL_Window *window = SDL_CreateWindow("Landscape Intersections", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                           width, height, SDL_WINDOW_SHOWN);
@@ -37,12 +37,6 @@ int main()
     SDL_Event e;
 
     while (!quit) {
-        while (SDL_PollEvent(&e) != 0) {
-            if (e.type == SDL_QUIT) {
-                quit = true;
-            }
-        }
-
         auto start = std::chrono::high_resolution_clock::now();
 
         constexpr int numberOfObjects = 1;
@@ -77,7 +71,8 @@ int main()
 
         auto finish = std::chrono::high_resolution_clock::now();
         int ms = (int) std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
-        printf("REFRESH RATE: %.1lfhz\n", 1 / (ms * 0.001));
+        printf("\rREFRESH RATE: %.1lfhz\n", 1 / (ms * 0.001));
+        fflush(stdout);
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
@@ -88,7 +83,6 @@ int main()
                 const auto &intersection = objectIntersections[index];
 
                 if (intersection.intersects) {
-                    printf("intersect");
                     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
                 } else {
                     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);

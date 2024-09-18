@@ -33,6 +33,8 @@ __global__ void intersectionKernel(
     LineTriangleIntersection *objectIntersections
 )
 {
+    Vector line = lines[0].a;
+
     const unsigned int idx = blockIdx.x;
     const unsigned int idy = threadIdx.x;
 
@@ -46,26 +48,35 @@ __global__ void intersectionKernel(
     objectIntersections[index] = intersect;
 }
 
-__host__ void copyLandscapeToGPU(
-    const Landscape landscape,
-    Landscape **d_landscape
-)
+void printIfError(cudaError_t error)
 {
-    cudaMalloc((void **) &d_landscape, sizeof(Landscape));
+    if (error != cudaSuccess) {
+        printf("CUDA error: %s\n", cudaGetErrorString(error));
+    }
+}
+
+__host__ Landscape *copyLandscapeToGPU(const Landscape landscape)
+{
+    Landscape *d_landscape = nullptr;
+    auto error = cudaMalloc(&d_landscape, sizeof(Landscape));
+    printIfError(error);
 
     Object *d_objects = nullptr;
-    cudaMalloc((void **) &d_objects, landscape.size * sizeof(Object));
+    error = cudaMalloc(&d_objects, landscape.size * sizeof(Object));
+    printIfError(error);
 
     for (int i = 0; i < landscape.size; i++) {
         const Object object = landscape.objects[i];
 
         Triangle *d_triangles = nullptr;
-        cudaMalloc((void **) &d_triangles, object.size * sizeof(Triangle));
+        error = cudaMalloc(&d_triangles, object.size * sizeof(Triangle));
+        printIfError(error);
 
         for (int j = 0; j < object.size; j++) {
             const Triangle triangle = object.triangles[j];
 
-            cudaMemcpy(&d_triangles[j], &triangle, sizeof(Triangle), cudaMemcpyHostToDevice);
+            error = cudaMemcpy(&d_triangles[j], &triangle, sizeof(Triangle), cudaMemcpyHostToDevice);
+            printIfError(error);
         }
 
         Object tmp_object = object;
@@ -75,10 +86,31 @@ __host__ void copyLandscapeToGPU(
     }
 
     Landscape tmp_landscape = landscape;
+    tmp_landscape.size = landscape.size;
     tmp_landscape.objects = d_objects;
 
-    cudaMemcpy(d_landscape, &tmp_landscape, sizeof(Landscape), cudaMemcpyHostToDevice);
+    error = cudaMemcpy(d_landscape, &tmp_landscape, sizeof(Landscape), cudaMemcpyHostToDevice);
+    printIfError(error);
+
+    return d_landscape;
 }
+
+__host__ Line *copyLinesToGPU(const Line *lines, const int width, const int height)
+{
+    Line *d_lines = nullptr;
+    const size_t size = width * height * sizeof(Line);
+
+    cudaMalloc(&d_lines, size);
+    cudaMemcpy(d_lines, lines, size, cudaMemcpyHostToDevice);
+
+    return d_lines;
+}
+
+// __host__ void freeLinesFromGPU(const Line d_lines*, const int width, const int height)
+// {
+//     auto error = cudaFree((void *) &d_lines);
+//     printIfError(error);
+// }
 
 __host__ void freeLandscapeFromGPU(
     const Landscape landscape,
@@ -96,18 +128,16 @@ extern "C" void generateCoordinatesOnGPU(
 )
 {
     Coordinates *d_output = nullptr;
-    const size_t size = width * height * sizeof(Coordinates);
+    const size_t size = height * sizeof(Coordinates);
 
-    cudaMalloc((void **) &d_output, size);
+    auto error = cudaMalloc(&d_output, size);
+    printIfError(error);
 
     generateCoordinatesKernel<<<1, height>>>(width, height, x, aspectRatio, d_output);
     cudaDeviceSynchronize();
 
-    const auto error = cudaMemcpy(output, d_output, size, cudaMemcpyDeviceToHost);
-
-    if (error != cudaSuccess) {
-        printf("CUDA memcpy error in coordinate generation: %s\n", cudaGetErrorString(error));
-    }
+    error = cudaMemcpy(output, d_output, size, cudaMemcpyDeviceToHost);
+    printIfError(error);
 
     cudaFree(d_output);
 }
@@ -120,28 +150,21 @@ extern "C" void determineLandscapeIntersectionsOnGPU(
     LineTriangleIntersection *objectIntersections
 )
 {
-    Landscape *d_landscape = nullptr;
     LineTriangleIntersection *d_output = nullptr;
     const size_t size = width * height * sizeof(LineTriangleIntersection);
 
-    copyLandscapeToGPU(landscape, &d_landscape);
-    cudaError_t error = cudaMalloc((void **) &d_output, size);
+    const auto landscapePointer = copyLandscapeToGPU(landscape);
+    const auto linesPointer = copyLinesToGPU(lines, width, height);
+    // d_landscape is still null after this call
+    cudaError_t error = cudaMalloc(&d_output, size);
+    printIfError(error);
 
-    if (error != cudaSuccess) {
-        printf("CUDA malloc error: %s\n", cudaGetErrorString(error));
-    }
-
-    intersectionKernel<<<width, height>>>(lines, d_landscape, width, height, d_output);
+    intersectionKernel<<<width, height>>>(linesPointer, landscapePointer, width, height, d_output);
     error = cudaGetLastError();
-    if (error != cudaSuccess) {
-        printf("Kernel launch failed: %s\n", cudaGetErrorString(error));
-    }
+    printIfError(error);
 
     error = cudaDeviceSynchronize();
-    if (error != cudaSuccess) {
-        printf("CUDA memcpy error: %s\n", cudaGetErrorString(error));
-        std::exit(-1);
-    }
+    printIfError(error);
 
     error = cudaMemcpy(
         objectIntersections,
@@ -149,11 +172,7 @@ extern "C" void determineLandscapeIntersectionsOnGPU(
         size,
         cudaMemcpyDeviceToHost
     );
-
-    if (error != cudaSuccess) {
-        printf("CUDA memcpy error: %s\n", cudaGetErrorString(error));
-        // std::exit(-1);
-    }
+    printIfError(error);
 
     cudaFree(d_output);
 }
