@@ -113,6 +113,13 @@ __host__ void freeLinesFromGPU(const Line *d_lines)
 // TODO make this not sigsev
 __host__ void freeLandscapeFromGPU(const Landscape landscape, const Landscape *d_landscape)
 {
+    /*
+     *  From the looks of things, we can't dereference device pointers
+     *  in host code. This is rough. What we're going to have to do is
+     *  iterate over the objects and triangles respectively, and
+     *  cudaMemcpy the values into local pointers from which we can
+     *  then use to reference the device pointers we need to free.
+     */
     for (int i = 0; i < landscape.size; i++) {
         const Object object = landscape.objects[i];
         for (int j = 0; j < object.size; j++) {
