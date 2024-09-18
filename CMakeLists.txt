@@ -26,7 +26,6 @@ add_executable(
         cuda/kernels.cpp
         cuda/kernels.cu
         src/components/Vector3D.cpp
-        src/components/Ray.cpp
         src/renderEngine/ViewPort.cpp
         cuda/helpers.cu
 )
@@ -43,11 +42,11 @@ add_executable(
         src/renderEngine/ViewPort.cpp
         src/components/Vector3D.cpp
 
-#        tests/LineTest.cu
-#        tests/VectorTest.cu
-#        tests/TriangleTest.cu
+        tests/LineTest.cu
+        tests/VectorTest.cu
+        tests/TriangleTest.cu
         tests/IntegrationTest.cu
-#        tests/LandscapeTest.cu
+        tests/LandscapeTest.cu
 )
 
 target_link_libraries(test_suite GTest::gtest GTest::gtest_main pthread)

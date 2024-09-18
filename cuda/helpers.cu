@@ -162,11 +162,6 @@ __device__ __host__ LineTriangleIntersection lineIntersectsObject(const Line &li
 __device__ __host__ LineTriangleIntersection lineIntersectsLandscape(const Line &line, const Landscape landscape)
 {
     for (int i = 0; i < landscape.size; i++) {
-        /*
-         * The landscape struct contains recursive pointers to RAM. This function is not run on the CPU,
-         * so when we try to access landscape.objects[i], we are trying to access a pointer that is not
-         * accessible to the GPU. We need to memcpy this data to the GPU before we can access it.
-         */
         const Object object = landscape.objects[i];
 
         const LineTriangleIntersection intersection = lineIntersectsObject(line, object);
@@ -178,7 +173,7 @@ __device__ __host__ LineTriangleIntersection lineIntersectsLandscape(const Line 
     return LineTriangleIntersection{
         false,
         Triangle{Vector{0, 0, 0}, Vector{0, 0, 0}, Vector{0, 0, 0}},
-        Line{Vector{0, 0, 0}, Vector{0, 0, 0}},
+        line,
         Vector{0, 0, 0},
     };
 }

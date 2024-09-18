@@ -40,16 +40,16 @@ __global__ void intersectionKernel(
         return;
     }
 
-    unsigned int index = idy * width + idx;
-    LineTriangleIntersection intersect = lineIntersectsLandscape(lines[index], *landscape);
+    const unsigned int index = idy * width + idx;
+    const LineTriangleIntersection intersect = lineIntersectsLandscape(lines[index], *landscape);
 
     objectIntersections[index] = intersect;
 }
 
-void printIfError(cudaError_t error)
+void printIfError(const cudaError_t error, const char* function, const int line)
 {
     if (error != cudaSuccess) {
-        printf("CUDA error: %s\n", cudaGetErrorString(error));
+        printf("CUDA error at %s::%d: %s\n", function, line, cudaGetErrorString(error));
     }
 }
 
@@ -57,24 +57,24 @@ __host__ Landscape *copyLandscapeToGPU(const Landscape landscape)
 {
     Landscape *d_landscape = nullptr;
     auto error = cudaMalloc(&d_landscape, sizeof(Landscape));
-    printIfError(error);
+    printIfError(error, __func__, __LINE__);
 
     Object *d_objects = nullptr;
     error = cudaMalloc(&d_objects, landscape.size * sizeof(Object));
-    printIfError(error);
+    printIfError(error, __func__, __LINE__);
 
     for (int i = 0; i < landscape.size; i++) {
         const Object object = landscape.objects[i];
 
         Triangle *d_triangles = nullptr;
         error = cudaMalloc(&d_triangles, object.size * sizeof(Triangle));
-        printIfError(error);
+        printIfError(error, __func__, __LINE__);
 
         for (int j = 0; j < object.size; j++) {
             const Triangle triangle = object.triangles[j];
 
             error = cudaMemcpy(&d_triangles[j], &triangle, sizeof(Triangle), cudaMemcpyHostToDevice);
-            printIfError(error);
+            printIfError(error, __func__, __LINE__);
         }
 
         Object tmp_object = object;
@@ -88,7 +88,7 @@ __host__ Landscape *copyLandscapeToGPU(const Landscape landscape)
     tmp_landscape.objects = d_objects;
 
     error = cudaMemcpy(d_landscape, &tmp_landscape, sizeof(Landscape), cudaMemcpyHostToDevice);
-    printIfError(error);
+    printIfError(error, __func__, __LINE__);
 
     return d_landscape;
 }
@@ -106,28 +106,31 @@ __host__ Line *copyLinesToGPU(const Line *lines, const int width, const int heig
 
 __host__ void freeLinesFromGPU(const Line *d_lines)
 {
-    auto error = cudaFree((void *) &d_lines);
-    printIfError(error);
+    auto error = cudaFree((void *) d_lines);
+    printIfError(error, __func__, __LINE__);
 }
 
 // TODO make this not sigsev
-__host__ void freeLandscapeFromGPU(const Landscape landscape, const Landscape *d_landscape)
+__host__ void freeLandscapeFromGPU(const Landscape landscape, Landscape *d_landscape)
 {
-    /*
-     *  From the looks of things, we can't dereference device pointers
-     *  in host code. This is rough. What we're going to have to do is
-     *  iterate over the objects and triangles respectively, and
-     *  cudaMemcpy the values into local pointers from which we can
-     *  then use to reference the device pointers we need to free.
-     */
+    const Landscape h_landscape{};
+
+    cudaMemcpy((void *) &h_landscape, d_landscape, sizeof(Landscape), cudaMemcpyDeviceToHost);
     for (int i = 0; i < landscape.size; i++) {
         const Object object = landscape.objects[i];
+        const Object d_object{};
+
+        cudaMemcpy((void *) &d_object, &h_landscape.objects[i], sizeof(Object), cudaMemcpyDeviceToHost);
         for (int j = 0; j < object.size; j++) {
-            cudaFree(&d_landscape->objects[i].triangles[j]);
+            const Triangle d_triangle{};
+            cudaMemcpy((void *) &d_triangle, &d_object.triangles[j], sizeof(Triangle), cudaMemcpyDeviceToHost);
+
+            cudaFree(&d_object.triangles[j]);
         }
-        cudaFree(&d_landscape->objects[i]);
+
+        cudaFree(&landscape.objects[i]);
     }
-    cudaFree((void**)d_landscape);
+    cudaFree(d_landscape);
 }
 
 extern "C" void generateCoordinatesOnGPU(
@@ -142,13 +145,13 @@ extern "C" void generateCoordinatesOnGPU(
     const size_t size = height * sizeof(Coordinates);
 
     auto error = cudaMalloc(&d_output, size);
-    printIfError(error);
+    printIfError(error, __func__, __LINE__);
 
     generateCoordinatesKernel<<<1, height>>>(width, height, x, aspectRatio, d_output);
     cudaDeviceSynchronize();
 
     error = cudaMemcpy(output, d_output, size, cudaMemcpyDeviceToHost);
-    printIfError(error);
+    printIfError(error, __func__, __LINE__);
 
     cudaFree(d_output);
 }
@@ -164,18 +167,18 @@ extern "C" void determineLandscapeIntersectionsOnGPU(
     LineTriangleIntersection *d_output = nullptr;
     const size_t size = width * height * sizeof(LineTriangleIntersection);
 
-    const auto landscapePointer = copyLandscapeToGPU(landscape);
-    const auto linesPointer = copyLinesToGPU(lines, width, height);
-    // d_landscape is still null after this call
-    cudaError_t error = cudaMalloc(&d_output, size);
-    printIfError(error);
+    const auto d_landscape = copyLandscapeToGPU(landscape);
+    const auto d_lines = copyLinesToGPU(lines, width, height);
 
-    intersectionKernel<<<width, height>>>(linesPointer, landscapePointer, width, height, d_output);
+    cudaError_t error = cudaMalloc(&d_output, size);
+    printIfError(error, __func__, __LINE__);
+
+    intersectionKernel<<<width, height>>>(d_lines, d_landscape, width, height, d_output);
     error = cudaGetLastError();
-    printIfError(error);
+    printIfError(error, __func__, __LINE__);
 
     error = cudaDeviceSynchronize();
-    printIfError(error);
+    printIfError(error, __func__, __LINE__);
 
     error = cudaMemcpy(
         objectIntersections,
@@ -183,9 +186,9 @@ extern "C" void determineLandscapeIntersectionsOnGPU(
         size,
         cudaMemcpyDeviceToHost
     );
-    printIfError(error);
+    printIfError(error, __func__, __LINE__);
 
-    // freeLandscapeFromGPU(landscape, landscapePointer);
-    freeLinesFromGPU(linesPointer);
+    freeLandscapeFromGPU(landscape, d_landscape);
+    freeLinesFromGPU(d_lines);
     cudaFree(d_output);
 }
