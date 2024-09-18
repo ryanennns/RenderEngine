@@ -33,8 +33,6 @@ __global__ void intersectionKernel(
     LineTriangleIntersection *objectIntersections
 )
 {
-    Vector line = lines[0].a;
-
     const unsigned int idx = blockIdx.x;
     const unsigned int idy = threadIdx.x;
 
@@ -106,17 +104,23 @@ __host__ Line *copyLinesToGPU(const Line *lines, const int width, const int heig
     return d_lines;
 }
 
-// __host__ void freeLinesFromGPU(const Line d_lines*, const int width, const int height)
-// {
-//     auto error = cudaFree((void *) &d_lines);
-//     printIfError(error);
-// }
-
-__host__ void freeLandscapeFromGPU(
-    const Landscape landscape,
-    Landscape *d_landscape
-)
+__host__ void freeLinesFromGPU(const Line *d_lines)
 {
+    auto error = cudaFree((void *) &d_lines);
+    printIfError(error);
+}
+
+// TODO make this not sigsev
+__host__ void freeLandscapeFromGPU(const Landscape landscape, const Landscape *d_landscape)
+{
+    for (int i = 0; i < landscape.size; i++) {
+        const Object object = landscape.objects[i];
+        for (int j = 0; j < object.size; j++) {
+            cudaFree(&d_landscape->objects[i].triangles[j]);
+        }
+        cudaFree(&d_landscape->objects[i]);
+    }
+    cudaFree((void**)d_landscape);
 }
 
 extern "C" void generateCoordinatesOnGPU(
@@ -174,5 +178,7 @@ extern "C" void determineLandscapeIntersectionsOnGPU(
     );
     printIfError(error);
 
+    // freeLandscapeFromGPU(landscape, landscapePointer);
+    freeLinesFromGPU(linesPointer);
     cudaFree(d_output);
 }
