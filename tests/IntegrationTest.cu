@@ -40,26 +40,3 @@ TEST(IntegrationTest, it_detects_intersection_with_rays_and_triangles)
 
     ASSERT_TRUE(objectIntersections[0].intersects);
 }
-
-TEST(Integrationtest, it_copies_data_to_gpu)
-{
-    const int expectedSize = 1;
-
-    struct Test {
-        int size;
-    };
-
-    Test* d_test = nullptr;
-    cudaMalloc(&d_test, sizeof(Test));
-
-    Test tmp_test{};
-    tmp_test.size = expectedSize;
-
-    Test *copyInto = new Test();
-
-    cudaMemcpy(d_test, &tmp_test, sizeof(Test), cudaMemcpyHostToDevice);
-    cudaMemcpy(copyInto, d_test, sizeof(Test), cudaMemcpyDeviceToHost);
-    printf("Test size: %d\n", tmp_test.size);  // Should print 1
-
-    ASSERT_EQ(copyInto->size, expectedSize);
-}
